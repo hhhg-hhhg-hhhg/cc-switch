@@ -1,5 +1,4 @@
 name: Manual Windows Build (Portable)
-
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +11,6 @@ jobs:
   build-windows:
     name: Build Windows x64
     runs-on: windows-2022
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +32,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri App
-        run: pnpm tauri build
+        # 关键修改：添加 --no-bundle-sign 参数
+        run: pnpm tauri build --no-bundle-sign
+        env:
+          # 强制将私钥设为空，防止它读取到仓库中可能残留的配置
+          TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: Prepare Windows Assets
         shell: pwsh
@@ -42,7 +44,7 @@ jobs:
           $VERSION = "${{ github.event.inputs.version }}"
           $AssetDir = "release-assets"
           New-Item -ItemType Directory -Force -Path $AssetDir | Out-Null
-          
+                    
           # 1. 处理 MSI 安装包
           $msi = Get-ChildItem -Path 'src-tauri/target/release/bundle/msi' -Filter *.msi | Select-Object -First 1
           if ($msi) {
@@ -55,17 +57,17 @@ jobs:
           if (Test-Path $exe) {
               $PortableStage = "CC-Switch-Portable"
               New-Item -ItemType Directory -Force -Path $PortableStage | Out-Null
-              
+                            
               # 复制可执行文件
               Copy-Item $exe (Join-Path $PortableStage "cc-switch.exe")
-              
+                            
               # 创建便携化标记文件
               "# Portable Mode Configuration" | Set-Content (Join-Path $PortableStage "portable.ini")
-              
+                            
               # 打包为 ZIP
               $ZipName = "$AssetDir/CC-Switch-$VERSION-Windows-Portable.zip"
               Compress-Archive -Path "$PortableStage/*" -DestinationPath $ZipName -Force
-              
+                            
               Write-Host "Portable ZIP prepared (including portable.ini)."
           }
 
