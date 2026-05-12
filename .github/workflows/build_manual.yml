@@ -1,4 +1,5 @@
 name: Manual Windows Build (Portable)
+
 on:
   workflow_dispatch:
     inputs:
@@ -32,12 +33,24 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri App
-        # 既然删除了 pubkey，直接运行 build 即可
+        # 通过环境变量动态覆盖 tauri.conf.json 里的 v2 配置
+        # 1. 关闭生成更新补丁 (不再需要签名)
+        # 2. 禁用 updater 插件 (不再检查 pubkey 字段)
         run: pnpm tauri build
         env:
-          # 双重保险：强制跳过签名逻辑
           TAURI_SKIP_SIGNING_IF_NO_KEY: "true"
           TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_CONFIG: |
+            {
+              "bundle": {
+                "createUpdaterArtifacts": false
+              },
+              "plugins": {
+                "updater": {
+                  "active": false
+                }
+              }
+            }
 
       - name: Prepare Windows Assets
         shell: pwsh
@@ -47,13 +60,14 @@ jobs:
           if (!(Test-Path $AssetDir)) { New-Item -ItemType Directory -Path $AssetDir }
 
           # 1. 处理 MSI 安装包
+          # 注意：Tauri v2 默认路径可能在 target/release/bundle/msi/ 下
           $msi = Get-ChildItem -Path 'src-tauri/target/release/bundle/msi' -Filter *.msi | Select-Object -First 1
           if ($msi) {
               Copy-Item $msi.FullName "$AssetDir/CC-Switch-$VERSION-Windows-Installer.msi"
               Write-Host "MSI Installer prepared: $($msi.Name)"
           }
 
-          # 2. 处理 Portable 绿色版 (从生成的 .exe 构建 ZIP)
+          # 2. 处理 Portable 绿色版 (使用编译出的主程序)
           $exe = "src-tauri/target/release/cc-switch.exe"
           if (Test-Path $exe) {
               $PortableStage = "CC-Switch-Portable"
@@ -71,6 +85,9 @@ jobs:
               Compress-Archive -Path "$PortableStage/*" -DestinationPath $ZipName -Force
                             
               Write-Host "Portable ZIP prepared."
+          } else {
+              Write-Error "Executable not found at $exe"
+              exit 1
           }
 
       - name: Upload Artifacts
