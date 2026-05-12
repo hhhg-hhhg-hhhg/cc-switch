@@ -1,0 +1,98 @@
+name: Manual Windows Build (Portable)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '构建版本号 (例如 v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.3
+
+      - name: Install frontend deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri App
+        # 通过环境变量动态覆盖 tauri.conf.json 里的 v2 配置
+        # 1. 关闭生成更新补丁 (不再需要签名)
+        # 2. 禁用 updater 插件 (不再检查 pubkey 字段)
+        run: pnpm tauri build
+        env:
+          TAURI_SKIP_SIGNING_IF_NO_KEY: "true"
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_CONFIG: |
+            {
+              "bundle": {
+                "createUpdaterArtifacts": false
+              },
+              "plugins": {
+                "updater": {
+                  "active": false
+                }
+              }
+            }
+
+      - name: Prepare Windows Assets
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.event.inputs.version }}"
+          $AssetDir = "release-assets"
+          if (!(Test-Path $AssetDir)) { New-Item -ItemType Directory -Path $AssetDir }
+
+          # 1. 处理 MSI 安装包
+          # 注意：Tauri v2 默认路径可能在 target/release/bundle/msi/ 下
+          $msi = Get-ChildItem -Path 'src-tauri/target/release/bundle/msi' -Filter *.msi | Select-Object -First 1
+          if ($msi) {
+              Copy-Item $msi.FullName "$AssetDir/CC-Switch-$VERSION-Windows-Installer.msi"
+              Write-Host "MSI Installer prepared: $($msi.Name)"
+          }
+
+          # 2. 处理 Portable 绿色版 (使用编译出的主程序)
+          $exe = "src-tauri/target/release/cc-switch.exe"
+          if (Test-Path $exe) {
+              $PortableStage = "CC-Switch-Portable"
+              if (Test-Path $PortableStage) { Remove-Item -Recurse -Force $PortableStage }
+              New-Item -ItemType Directory -Path $PortableStage
+                            
+              # 复制可执行文件
+              Copy-Item $exe (Join-Path $PortableStage "cc-switch.exe")
+                            
+              # 创建便携化标记文件
+              "# Portable Mode Configuration" | Set-Content (Join-Path $PortableStage "portable.ini")
+                            
+              # 打包为 ZIP
+              $ZipName = "$AssetDir/CC-Switch-$VERSION-Windows-Portable.zip"
+              Compress-Archive -Path "$PortableStage/*" -DestinationPath $ZipName -Force
+                            
+              Write-Host "Portable ZIP prepared."
+          } else {
+              Write-Error "Executable not found at $exe"
+              exit 1
+          }
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CC-Switch-Windows-Package
+          path: release-assets/*
+          retention-days: 3
