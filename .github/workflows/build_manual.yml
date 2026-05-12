@@ -32,10 +32,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri App
-        # 关键修改：添加 --no-bundle-sign 参数
-        run: pnpm tauri build --no-bundle-sign
+        # 既然删除了 pubkey，直接运行 build 即可
+        run: pnpm tauri build
         env:
-          # 强制将私钥设为空，防止它读取到仓库中可能残留的配置
+          # 双重保险：强制跳过签名逻辑
+          TAURI_SKIP_SIGNING_IF_NO_KEY: "true"
           TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: Prepare Windows Assets
@@ -43,20 +44,21 @@ jobs:
         run: |
           $VERSION = "${{ github.event.inputs.version }}"
           $AssetDir = "release-assets"
-          New-Item -ItemType Directory -Force -Path $AssetDir | Out-Null
-                    
+          if (!(Test-Path $AssetDir)) { New-Item -ItemType Directory -Path $AssetDir }
+
           # 1. 处理 MSI 安装包
           $msi = Get-ChildItem -Path 'src-tauri/target/release/bundle/msi' -Filter *.msi | Select-Object -First 1
           if ($msi) {
               Copy-Item $msi.FullName "$AssetDir/CC-Switch-$VERSION-Windows-Installer.msi"
-              Write-Host "MSI Installer prepared."
+              Write-Host "MSI Installer prepared: $($msi.Name)"
           }
 
-          # 2. 处理 Portable 绿色版
+          # 2. 处理 Portable 绿色版 (从生成的 .exe 构建 ZIP)
           $exe = "src-tauri/target/release/cc-switch.exe"
           if (Test-Path $exe) {
               $PortableStage = "CC-Switch-Portable"
-              New-Item -ItemType Directory -Force -Path $PortableStage | Out-Null
+              if (Test-Path $PortableStage) { Remove-Item -Recurse -Force $PortableStage }
+              New-Item -ItemType Directory -Path $PortableStage
                             
               # 复制可执行文件
               Copy-Item $exe (Join-Path $PortableStage "cc-switch.exe")
@@ -68,7 +70,7 @@ jobs:
               $ZipName = "$AssetDir/CC-Switch-$VERSION-Windows-Portable.zip"
               Compress-Archive -Path "$PortableStage/*" -DestinationPath $ZipName -Force
                             
-              Write-Host "Portable ZIP prepared (including portable.ini)."
+              Write-Host "Portable ZIP prepared."
           }
 
       - name: Upload Artifacts
