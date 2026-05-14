@@ -87,14 +87,17 @@ struct ToolBlockState {
     started: bool,
     pending_args: String,
     /// 连续空白字符计数 — 用于检测 Copilot 无限换行 bug
-    /// 当 function call 参数中出现连续 20+ 空白字符时，强制终止流
+    /// 当连续空白字符达到 WARN_THRESHOLD（20）时打印警告，
+    /// 达到 ABORT_THRESHOLD（100）时强制终止流
     consecutive_whitespace: usize,
     /// 是否已因无限空白 bug 被中止
     aborted: bool,
 }
 
-/// 无限空白 bug 的连续空白字符阈值
-const INFINITE_WHITESPACE_THRESHOLD: usize = 20;
+/// 无限空白 bug 的警告阈值（达到时打印日志，不中断）
+const WHITESPACE_WARN_THRESHOLD: usize = 20;
+/// 无限空白 bug 的中止阈值（达到时强制终止流）
+const WHITESPACE_ABORT_THRESHOLD: usize = 100;
 
 /// 创建 Anthropic SSE 流
 pub fn create_anthropic_sse_stream<E: std::error::Error + Send + 'static>(
@@ -345,11 +348,18 @@ pub fn create_anthropic_sse_stream<E: std::error::Error + Send + 'static>(
                                                         for ch in args.chars() {
                                                             if ch.is_whitespace() {
                                                                 state.consecutive_whitespace += 1;
+                                                                if state.consecutive_whitespace == WHITESPACE_WARN_THRESHOLD {
+                                                                    log::warn!(
+                                                                        "[Copilot] tool call '{}' 连续空白已达 {} 字符, 继续增加可能为无限空白 bug",
+                                                                        state.name,
+                                                                        WHITESPACE_WARN_THRESHOLD
+                                                                    );
+                                                                }
                                                             } else {
                                                                 state.consecutive_whitespace = 0;
                                                             }
                                                         }
-                                                        if state.consecutive_whitespace >= INFINITE_WHITESPACE_THRESHOLD {
+                                                        if state.consecutive_whitespace >= WHITESPACE_ABORT_THRESHOLD {
                                                             log::warn!(
                                                                 "[Copilot] 检测到无限空白 bug (tool: {}), 中止此 tool call 流",
                                                                 state.name
