@@ -11,12 +11,14 @@ interface UsageSummaryCardsProps {
   range: UsageRangeSelection;
   appType?: string;
   refreshIntervalMs: number;
+  excludeCacheRead?: boolean;
 }
 
 export function UsageSummaryCards({
   range,
   appType,
   refreshIntervalMs,
+  excludeCacheRead,
 }: UsageSummaryCardsProps) {
   const { t } = useTranslation();
 
@@ -28,12 +30,15 @@ export function UsageSummaryCards({
     const totalRequests = summary?.totalRequests ?? 0;
     const totalCost = parseFiniteNumber(summary?.totalCost);
 
-    const inputTokens = summary?.totalInputTokens ?? 0;
+    const rawInputTokens = summary?.totalInputTokens ?? 0;
+    const cacheReadTokens = summary?.totalCacheReadTokens ?? 0;
+    const displayInputTokens = excludeCacheRead
+      ? Math.max(rawInputTokens - cacheReadTokens, 0)
+      : rawInputTokens;
     const outputTokens = summary?.totalOutputTokens ?? 0;
-    const totalTokens = inputTokens + outputTokens;
+    const totalTokens = displayInputTokens + outputTokens;
 
     const cacheWriteTokens = summary?.totalCacheCreationTokens ?? 0;
-    const cacheReadTokens = summary?.totalCacheReadTokens ?? 0;
     const totalCacheTokens = cacheWriteTokens + cacheReadTokens;
 
     return [
@@ -64,7 +69,7 @@ export function UsageSummaryCards({
             <div className="flex justify-between items-center">
               <span>{t("usage.input")}</span>
               <span className="text-foreground/80">
-                {(inputTokens / 1000).toFixed(1)}k
+                {(displayInputTokens / 1000).toFixed(1)}k
               </span>
             </div>
             <div className="flex justify-between items-center">

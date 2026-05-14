@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { UsageSummaryCards } from "./UsageSummaryCards";
 import { UsageTrendChart } from "./UsageTrendChart";
@@ -13,8 +13,15 @@ import {
   Activity,
   RefreshCw,
   Coins,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useQueryClient } from "@tanstack/react-query";
 import { usageKeys } from "@/lib/query/usage";
 import {
@@ -29,6 +36,7 @@ import { getLocaleFromLanguage } from "./format";
 import { getUsageRangePresetLabel, resolveUsageRange } from "@/lib/usageRange";
 import { UsageDateRangePicker } from "./UsageDateRangePicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSettingsQuery, useSaveSettingsMutation } from "@/lib/query";
 
 const APP_FILTER_OPTIONS: AppTypeFilter[] = [
   "all",
@@ -43,6 +51,16 @@ export function UsageDashboard() {
   const [range, setRange] = useState<UsageRangeSelection>({ preset: "today" });
   const [appType, setAppType] = useState<AppTypeFilter>("all");
   const [refreshIntervalMs, setRefreshIntervalMs] = useState(30000);
+
+  const { data: settings } = useSettingsQuery();
+  const saveSettings = useSaveSettingsMutation();
+  const excludeCacheRead = settings?.excludeCacheReadFromInput ?? false;
+  const toggleExcludeCacheRead = useCallback(() => {
+    saveSettings.mutateAsync({
+      ...settings,
+      excludeCacheReadFromInput: !excludeCacheRead,
+    } as any);
+  }, [saveSettings, settings, excludeCacheRead]);
 
   const refreshIntervalOptionsMs = [0, 5000, 10000, 30000, 60000] as const;
   const changeRefreshInterval = () => {
@@ -122,7 +140,31 @@ export function UsageDashboard() {
                 triggerLabel={rangeLabel}
                 onApply={(nextRange) => setRange(nextRange)}
               />
-            </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" title={t("usage.displaySettings")}>
+                  <Settings2 className="h-3.5 w-3.5" />
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="end">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">{t("usage.displaySettings")}</h4>
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="exclude-cache-read"
+                        checked={excludeCacheRead}
+                        onCheckedChange={toggleExcludeCacheRead}
+                      />
+                      <label
+                        htmlFor="exclude-cache-read"
+                        className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        <span className="font-medium">{t("usage.excludeCacheRead")}</span>
+                        <p className="text-xs text-muted-foreground mt-1">{t("usage.excludeCacheReadDesc")}</p>
+                      </label>
+                    </div>
+                  </div>
+                </PopoverContent>
           </div>
         </div>
       </div>
@@ -131,6 +173,7 @@ export function UsageDashboard() {
         range={range}
         appType={appType}
         refreshIntervalMs={refreshIntervalMs}
+        excludeCacheRead={excludeCacheRead}
       />
 
       <UsageTrendChart
@@ -138,6 +181,7 @@ export function UsageDashboard() {
         rangeLabel={rangeLabel}
         appType={appType}
         refreshIntervalMs={refreshIntervalMs}
+        excludeCacheRead={excludeCacheRead}
       />
 
       <div className="space-y-4">
@@ -171,6 +215,7 @@ export function UsageDashboard() {
                 appType={appType}
                 refreshIntervalMs={refreshIntervalMs}
                 onRangeChange={setRange}
+                excludeCacheRead={excludeCacheRead}
               />
             </TabsContent>
 

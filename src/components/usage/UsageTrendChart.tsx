@@ -25,6 +25,7 @@ interface UsageTrendChartProps {
   rangeLabel: string;
   appType?: string;
   refreshIntervalMs: number;
+  excludeCacheRead?: boolean;
 }
 
 export function UsageTrendChart({
@@ -32,6 +33,7 @@ export function UsageTrendChart({
   rangeLabel,
   appType,
   refreshIntervalMs,
+  excludeCacheRead,
 }: UsageTrendChartProps) {
   const { t, i18n } = useTranslation();
   const { startDate, endDate } = resolveUsageRange(range);
@@ -69,7 +71,9 @@ export function UsageTrendChart({
               day: "2-digit",
             }),
         hour: pointDate.getHours(),
-        inputTokens: stat.totalInputTokens,
+        inputTokens: excludeCacheRead
+          ? Math.max(stat.totalInputTokens - stat.totalCacheReadTokens, 0)
+          : stat.totalInputTokens,
         outputTokens: stat.totalOutputTokens,
         cacheCreationTokens: stat.totalCacheCreationTokens,
         cacheReadTokens: stat.totalCacheReadTokens,

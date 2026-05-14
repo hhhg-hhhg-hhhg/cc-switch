@@ -34,6 +34,7 @@ interface RequestLogTableProps {
   appType?: string;
   refreshIntervalMs: number;
   onRangeChange?: (range: UsageRangeSelection) => void;
+  excludeCacheRead?: boolean;
 }
 
 export function RequestLogTable({
@@ -42,6 +43,7 @@ export function RequestLogTable({
   appType: dashboardAppType,
   refreshIntervalMs,
   onRangeChange,
+  excludeCacheRead,
 }: RequestLogTableProps) {
   const { t, i18n } = useTranslation();
 
@@ -324,7 +326,7 @@ export function RequestLogTable({
                       </TableCell>
                       <TableCell className="text-center px-1.5">
                         <div className="tabular-nums">
-                          {fmtInt(log.inputTokens, locale)}
+                          {fmtInt(excludeCacheRead ? Math.max(log.inputTokens - log.cacheReadTokens, 0) : log.inputTokens, locale)}
                         </div>
                         {(log.cacheReadTokens > 0 ||
                           log.cacheCreationTokens > 0) && (
