@@ -289,6 +289,11 @@ pub struct AppSettings {
     /// - Linux: "gnome-terminal" | "konsole" | "xfce4-terminal" | "alacritty" | "kitty" | "ghostty"
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preferred_terminal: Option<String>,
+
+    // ===== 使用统计设置 =====
+    /// 使用统计中是否从 input token 中排除 cache read
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exclude_cache_read_from_input: Option<bool>,
 }
 
 fn default_show_in_tray() -> bool {
@@ -338,6 +343,7 @@ impl Default for AppSettings {
             backup_interval_hours: None,
             backup_retain_count: None,
             preferred_terminal: None,
+            exclude_cache_read_from_input: None,
         }
     }
 }

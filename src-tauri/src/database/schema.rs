@@ -430,6 +430,11 @@ impl Database {
                         Self::migrate_v9_to_v10(conn)?;
                         Self::set_user_version(conn, 10)?;
                     }
+                    10 => {
+                        log::info!("迁移数据库从 v10 到 v11（修正 DeepSeek V4 cache_read 定价）");
+                        Self::migrate_v10_to_v11(conn)?;
+                        Self::set_user_version(conn, 11)?;
+                    }
                     _ => {
                         return Err(AppError::Database(format!(
                             "未知的数据库版本 {version}，无法迁移到 {SCHEMA_VERSION}"
@@ -1198,6 +1203,19 @@ impl Database {
         Ok(())
     }
 
+    fn migrate_v10_to_v11(conn: &Connection) -> Result<(), AppError> {
+        conn.execute(
+            "UPDATE model_pricing SET cache_read_cost_per_million = '0.0028' WHERE model_id = 'deepseek-v4-flash'",
+            [],
+        )?;
+        conn.execute(
+            "UPDATE model_pricing SET cache_read_cost_per_million = '0.0145' WHERE model_id = 'deepseek-v4-pro'",
+            [],
+        )?;
+        log::info!("v10 -> v11 迁移完成：已修正 DeepSeek V4 cache_read 定价");
+        Ok(())
+    }
+
     /// 插入默认模型定价数据
     /// 格式: (model_id, display_name, input, output, cache_read, cache_creation)
     /// 注意: model_id 使用短横线格式（如 claude-haiku-4-5），与 API 返回的模型名称标准化后一致
@@ -1626,7 +1644,7 @@ impl Database {
                 "DeepSeek V4 Flash",
                 "0.14",
                 "0.28",
-                "0.028",
+                "0.0028",
                 "0",
             ),
             (
@@ -1634,7 +1652,7 @@ impl Database {
                 "DeepSeek V4 Pro",
                 "1.68",
                 "3.36",
-                "0.14",
+                "0.0145",
                 "0",
             ),
             // Kimi (月之暗面)
