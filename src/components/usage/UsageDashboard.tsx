@@ -165,7 +165,7 @@ export function UsageDashboard() {
                     </div>
                   </div>
                 </PopoverContent>
-          </div>
+          </Popover>
         </div>
       </div>
 
