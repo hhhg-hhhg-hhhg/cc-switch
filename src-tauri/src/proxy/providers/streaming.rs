@@ -448,11 +448,19 @@ pub fn create_anthropic_sse_stream<E: std::error::Error + Send + 'static>(
                                                     continue;
                                                 }
                                                 let fallback_id = if state.id.is_empty() {
+                                                    log::warn!(
+                                                        "[Claude/OpenRouter] 流式转换: 工具调用 finish_reason 到达时 id 缺失，使用回退值 tool_call_{tool_idx}, anthropic_index={}",
+                                                        state.anthropic_index
+                                                    );
                                                     format!("tool_call_{tool_idx}")
                                                 } else {
                                                     state.id.clone()
                                                 };
                                                 let fallback_name = if state.name.is_empty() {
+                                                    log::warn!(
+                                                        "[Claude/OpenRouter] 流式转换: 工具调用 finish_reason 到达时 name 缺失，使用回退值 unknown_tool, tool_idx={tool_idx}, anthropic_index={}",
+                                                        state.anthropic_index
+                                                    );
                                                     "unknown_tool".to_string()
                                                 } else {
                                                     state.name.clone()

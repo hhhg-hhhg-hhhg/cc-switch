@@ -504,7 +504,12 @@ pub fn openai_to_anthropic(body: Value) -> Result<Value, ProxyError> {
                 .get("arguments")
                 .and_then(|a| a.as_str())
                 .unwrap_or("{}");
-            let input: Value = serde_json::from_str(args_str).unwrap_or(json!({}));
+            let input: Value = serde_json::from_str(args_str).unwrap_or_else(|e| {
+                log::warn!(
+                    "[转换] Chat Completions 工具调用 arguments JSON 解析失败: {e}, name={name}, id={id}"
+                );
+                json!({})
+            });
 
             content.push(json!({
                 "type": "tool_use",
