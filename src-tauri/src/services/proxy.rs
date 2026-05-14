@@ -12,6 +12,7 @@ use crate::proxy::types::*;
 use crate::services::provider::{
     build_effective_settings_with_common_config, write_live_with_common_config,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -49,6 +50,14 @@ pub struct HotSwitchOutcome {
     pub logical_target_changed: bool,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ClaudeModelOverrides {
+    pub default_model: Option<String>,
+    pub haiku_model: Option<String>,
+    pub sonnet_model: Option<String>,
+    pub opus_model: Option<String>,
+}
+
 impl ProxyService {
     pub fn new(db: Arc<Database>) -> Self {
         Self {
@@ -84,7 +93,11 @@ impl ProxyService {
         Ok(())
     }
 
-    fn apply_claude_takeover_fields(config: &mut Value, proxy_url: &str) {
+    fn apply_claude_takeover_fields(
+        config: &mut Value,
+        proxy_url: &str,
+        overrides: Option<&ClaudeModelOverrides>,
+    ) {
         if !config.is_object() {
             *config = json!({});
         }
@@ -102,8 +115,25 @@ impl ProxyService {
             .expect("Claude env should be normalized to an object");
         env.insert("ANTHROPIC_BASE_URL".to_string(), json!(proxy_url));
 
+        // Remove legacy model override keys to prevent stale values
         for key in CLAUDE_MODEL_OVERRIDE_ENV_KEYS {
             env.remove(key);
+        }
+
+        // Apply user-configured model overrides if provided
+        if let Some(overrides) = overrides {
+            if let Some(val) = &overrides.default_model {
+                env.insert("ANTHROPIC_MODEL".to_string(), json!(val));
+            }
+            if let Some(val) = &overrides.haiku_model {
+                env.insert("ANTHROPIC_DEFAULT_HAIKU_MODEL".to_string(), json!(val));
+            }
+            if let Some(val) = &overrides.sonnet_model {
+                env.insert("ANTHROPIC_DEFAULT_SONNET_MODEL".to_string(), json!(val));
+            }
+            if let Some(val) = &overrides.opus_model {
+                env.insert("ANTHROPIC_DEFAULT_OPUS_MODEL".to_string(), json!(val));
+            }
         }
 
         let token_keys = [
@@ -141,7 +171,7 @@ impl ProxyService {
         .map_err(|e| format!("构建 claude 有效配置失败: {e}"))?;
         let (proxy_url, _) = self.build_proxy_urls().await?;
 
-        Self::apply_claude_takeover_fields(&mut effective_settings, &proxy_url);
+        Self::apply_claude_takeover_fields(&mut effective_settings, &proxy_url, None);
         self.write_claude_live(&effective_settings)?;
         Ok(())
     }
@@ -921,7 +951,7 @@ impl ProxyService {
 
         // Claude: 修改 ANTHROPIC_BASE_URL，使用占位符替代真实 Token（代理会注入真实 Token）
         if let Ok(mut live_config) = self.read_claude_live() {
-            Self::apply_claude_takeover_fields(&mut live_config, &proxy_url);
+            Self::apply_claude_takeover_fields(&mut live_config, &proxy_url, None);
             self.write_claude_live(&live_config)?;
             log::info!("Claude Live 配置已接管，代理地址: {proxy_url}");
         }
@@ -971,7 +1001,18 @@ impl ProxyService {
         match app_type {
             AppType::Claude => {
                 let mut live_config = self.read_claude_live()?;
-                Self::apply_claude_takeover_fields(&mut live_config, &proxy_url);
+                let settings = crate::settings::get_settings();
+                let model_overrides = ClaudeModelOverrides {
+                    default_model: settings.claude_default_model.clone(),
+                    haiku_model: settings.claude_haiku_model.clone(),
+                    sonnet_model: settings.claude_sonnet_model.clone(),
+                    opus_model: settings.claude_opus_model.clone(),
+                };
+                Self::apply_claude_takeover_fields(
+                    &mut live_config,
+                    &proxy_url,
+                    Some(&model_overrides),
+                );
                 self.write_claude_live(&live_config)?;
                 log::info!("Claude Live 配置已接管，代理地址: {proxy_url}");
             }
@@ -1024,7 +1065,18 @@ impl ProxyService {
         match app_type {
             AppType::Claude => {
                 if let Ok(mut live_config) = self.read_claude_live() {
-                    Self::apply_claude_takeover_fields(&mut live_config, &proxy_url);
+                    let settings = crate::settings::get_settings();
+                    let model_overrides = ClaudeModelOverrides {
+                        default_model: settings.claude_default_model.clone(),
+                        haiku_model: settings.claude_haiku_model.clone(),
+                        sonnet_model: settings.claude_sonnet_model.clone(),
+                        opus_model: settings.claude_opus_model.clone(),
+                    };
+                    Self::apply_claude_takeover_fields(
+                        &mut live_config,
+                        &proxy_url,
+                        Some(&model_overrides),
+                    );
                     let _ = self.write_claude_live(&live_config);
                 }
             }

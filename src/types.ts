@@ -334,6 +334,16 @@ export interface Settings {
   // Windows: "cmd" | "powershell" | "wt"
   // Linux: "gnome-terminal" | "konsole" | "xfce4-terminal" | "alacritty" | "kitty" | "ghostty"
   preferredTerminal?: string;
+
+  // ===== Claude Code 模型配置 =====
+  // 默认模型（ANTHROPIC_MODEL）
+  claudeDefaultModel?: string;
+  // Haiku 模型（ANTHROPIC_DEFAULT_HAIKU_MODEL）
+  claudeHaikuModel?: string;
+  // Sonnet 模型（ANTHROPIC_DEFAULT_SONNET_MODEL）
+  claudeSonnetModel?: string;
+  // Opus 模型（ANTHROPIC_DEFAULT_OPUS_MODEL）
+  claudeOpusModel?: string;
 }
 
 export interface SessionMeta {

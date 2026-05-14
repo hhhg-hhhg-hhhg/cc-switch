@@ -29,12 +29,18 @@ import {
 import type { ProxyStatus } from "@/types/proxy";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  ProxyModelConfig,
+  type ClaudeModelValues,
+} from "@/components/proxy/ProxyModelConfig";
 
 interface ProxyPanelProps {
   enableLocalProxy: boolean;
   onEnableLocalProxyChange: (checked: boolean) => void;
   onToggleProxy: (checked: boolean) => Promise<void>;
   isProxyPending: boolean;
+  modelValues?: ClaudeModelValues;
+  onModelChange?: (value: ClaudeModelValues) => void;
 }
 
 export function ProxyPanel({
@@ -42,6 +48,8 @@ export function ProxyPanel({
   onEnableLocalProxyChange,
   onToggleProxy,
   isProxyPending,
+  modelValues,
+  onModelChange,
 }: ProxyPanelProps) {
   const { t } = useTranslation();
   const { status, isRunning } = useProxyStatus();
@@ -276,6 +284,14 @@ export function ProxyPanel({
                     );
                   })}
                 </div>
+
+                {modelValues && onModelChange && (
+                  <ProxyModelConfig
+                    value={modelValues}
+                    onChange={onModelChange}
+                  />
+                )}
+
                 <p className="text-xs text-muted-foreground">
                   {t("proxy.takeover.hint", {
                     defaultValue:

@@ -294,6 +294,20 @@ pub struct AppSettings {
     /// 使用统计中是否从 input token 中排除 cache read
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exclude_cache_read_from_input: Option<bool>,
+
+    // ===== Claude Code 模型配置 =====
+    /// Claude Code 默认模型 (ANTHROPIC_MODEL)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claude_default_model: Option<String>,
+    /// Claude Code Haiku 模型 (ANTHROPIC_DEFAULT_HAIKU_MODEL)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claude_haiku_model: Option<String>,
+    /// Claude Code Sonnet 模型 (ANTHROPIC_DEFAULT_SONNET_MODEL)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claude_sonnet_model: Option<String>,
+    /// Claude Code Opus 模型 (ANTHROPIC_DEFAULT_OPUS_MODEL)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claude_opus_model: Option<String>,
 }
 
 fn default_show_in_tray() -> bool {
@@ -344,6 +358,10 @@ impl Default for AppSettings {
             backup_retain_count: None,
             preferred_terminal: None,
             exclude_cache_read_from_input: None,
+            claude_default_model: None,
+            claude_haiku_model: None,
+            claude_sonnet_model: None,
+            claude_opus_model: None,
         }
     }
 }

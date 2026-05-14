@@ -126,6 +126,20 @@ export function ProxyTabContent({
               }
               onToggleProxy={handleToggleProxy}
               isProxyPending={isProxyPending}
+              modelValues={{
+                defaultModel: settings?.claudeDefaultModel,
+                haikuModel: settings?.claudeHaikuModel,
+                sonnetModel: settings?.claudeSonnetModel,
+                opusModel: settings?.claudeOpusModel,
+              }}
+              onModelChange={async (modelValues) => {
+                await onAutoSave({
+                  claudeDefaultModel: modelValues.defaultModel,
+                  claudeHaikuModel: modelValues.haikuModel,
+                  claudeSonnetModel: modelValues.sonnetModel,
+                  claudeOpusModel: modelValues.opusModel,
+                });
+              }}
             />
           </AccordionContent>
         </AccordionItem>

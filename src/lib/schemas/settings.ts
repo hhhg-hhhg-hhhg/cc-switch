@@ -55,6 +55,12 @@ export const settingsSchema = z.object({
         .optional(),
     })
     .optional(),
+
+  // Claude Code 模型配置
+  claudeDefaultModel: z.string().optional(),
+  claudeHaikuModel: z.string().optional(),
+  claudeSonnetModel: z.string().optional(),
+  claudeOpusModel: z.string().optional(),
 });
 
 export type SettingsFormData = z.infer<typeof settingsSchema>;

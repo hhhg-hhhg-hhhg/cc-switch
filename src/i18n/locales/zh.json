@@ -2143,6 +2143,17 @@
         "inactive": "路由 {{appLabel}} 的请求，让该应用请求走本地路由"
       }
     },
+    "modelConfig": {
+      "title": "Claude Code 模型配置",
+      "defaultModel": "默认模型",
+      "defaultModelPlaceholder": "例如: claude-sonnet-4-6-latest",
+      "haikuModel": "Haiku 模型",
+      "haikuModelPlaceholder": "例如: claude-haiku-4-5",
+      "sonnetModel": "Sonnet 模型",
+      "sonnetModelPlaceholder": "例如: claude-sonnet-4-6-latest",
+      "opusModel": "Opus 模型",
+      "opusModelPlaceholder": "例如: claude-opus-4-6-latest"
+    },
     "failover": {
       "proxyRequired": "需要先启动路由服务才能配置故障转移",
       "autoSwitch": "自动故障转移",

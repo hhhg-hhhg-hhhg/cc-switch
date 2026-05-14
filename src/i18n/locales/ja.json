@@ -2143,6 +2143,17 @@
         "inactive": "{{appLabel}} のリクエストをローカルルーティング経由でルーティング"
       }
     },
+    "modelConfig": {
+      "title": "Claude Code モデル設定",
+      "defaultModel": "デフォルトモデル",
+      "defaultModelPlaceholder": "例: claude-sonnet-4-6-latest",
+      "haikuModel": "Haiku モデル",
+      "haikuModelPlaceholder": "例: claude-haiku-4-5",
+      "sonnetModel": "Sonnet モデル",
+      "sonnetModelPlaceholder": "例: claude-sonnet-4-6-latest",
+      "opusModel": "Opus モデル",
+      "opusModelPlaceholder": "例: claude-opus-4-6-latest"
+    },
     "failover": {
       "proxyRequired": "フェイルオーバーを設定するには、ルーティングサービスを先に起動する必要があります",
       "autoSwitch": "自動フェイルオーバー",
