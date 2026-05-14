@@ -211,7 +211,7 @@ CC Switch には「共有設定スニペット」機能があり、APIキーや�
 <details>
 <summary><strong>macOS のインストールについて</strong></summary>
 
-CC Switch の macOS 版は Apple によるコード署名と公証が完了しています。直接ダウンロードしてインストールできます — 追加の手順は不要です。`.dmg` インストーラの使用を推奨します。
+CC Switch の macOS 版は `.dmg` インストーラまたは `.zip` アーカイブとして提供されています。直接ダウンロードしてインストールできます。`.dmg` インストーラの使用を推奨します。
 
 </details>
 

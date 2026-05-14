@@ -6,7 +6,7 @@
 
 [![Version](https://img.shields.io/github/v/release/farion1231/cc-switch?color=blue&label=version)](https://github.com/farion1231/cc-switch/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/farion1231/cc-switch/releases)
-[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%202-orange.svg)](https://tauri.app/)
+[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%202.8-orange.svg)](https://tauri.app/)
 [![Downloads](https://img.shields.io/github/downloads/farion1231/cc-switch/total)](https://github.com/farion1231/cc-switch/releases/latest)
 
 <a href="https://trendshift.io/repositories/15372" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15372" alt="farion1231%2Fcc-switch | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -209,7 +209,7 @@ CC Switch provides a "Shared Config Snippet" feature to pass common data (beyond
 <details>
 <summary><strong>macOS installation</strong></summary>
 
-CC Switch for macOS is code-signed and notarized by Apple. You can download and install it directly — no extra steps needed. We recommend using the `.dmg` installer.
+CC Switch for macOS is available as a `.dmg` installer or `.zip` archive. You can download and install it directly.
 
 </details>
 
@@ -232,9 +232,9 @@ Add an official provider from the preset list. After switching to it, run the Lo
 
 - **Database**: `~/.cc-switch/cc-switch.db` (SQLite — providers, MCP, prompts, skills)
 - **Local settings**: `~/.cc-switch/settings.json` (device-level UI preferences)
-- **Backups**: `~/.cc-switch/backups/` (auto-rotated, keeps 10 most recent)
+- **Backups**: `~/.cc-switch/backups/` (auto-rotated, keeps 20 most recent)
 - **Skills**: `~/.cc-switch/skills/` (symlinked to corresponding apps by default)
-- **Skill Backups**: `~/.cc-switch/skill-backups/` (created automatically before uninstall, keeps 20 most recent)
+- **Skill Backups**: `~/.cc-switch/skill-backups/` (created automatically before uninstall, keeps 30 most recent)
 
 </details>
 
@@ -293,7 +293,7 @@ brew upgrade --cask cc-switch
 
 Download `CC-Switch-v{version}-macOS.dmg` (recommended) or `.zip` from the [Releases](../../releases) page.
 
-> **Note**: CC Switch for macOS is code-signed and notarized by Apple. You can install and open it directly.
+> **Note**: CC Switch for macOS is available as a `.dmg` installer or `.zip` archive. You can install and open it directly.
 
 ### Arch Linux Users
 
@@ -361,10 +361,10 @@ Download the latest Linux build from the [Releases](../../releases) page:
 
 ### Environment Requirements
 
-- Node.js 18+
-- pnpm 8+
-- Rust 1.85+
-- Tauri CLI 2.8+
+- Node.js 20+
+- pnpm 10+
+- Rust 1.86+
+- Tauri CLI 2.9+
 
 ### Development Commands
 
@@ -441,9 +441,9 @@ pnpm test:unit --coverage
 
 ### Tech Stack
 
-**Frontend**: React 18 · TypeScript · Vite · TailwindCSS 3.4 · TanStack Query v5 · react-i18next · react-hook-form · zod · shadcn/ui · @dnd-kit
+**Frontend**: React 19 · TypeScript · Vite 6 · TailwindCSS 4 · TanStack Query v5 · react-i18next · react-hook-form · zod · shadcn/ui · @dnd-kit
 
-**Backend**: Tauri 2.8 · Rust · serde · tokio · thiserror · tauri-plugin-updater/process/dialog/store/log
+**Backend**: Tauri 2.9 · Rust · serde · tokio · thiserror · tauri-plugin-updater/process/dialog/store/log
 
 **Testing**: vitest · MSW · @testing-library/react
 
@@ -509,3 +509,17 @@ For new features, please open an issue for discussion before submitting a PR. PR
 ## License
 
 MIT © Jason Young
+
+---
+
+## 写在最后
+
+CC Switch 始于一个朴素的问题：五个 CLI 工具，五套配置格式，每次切换都得翻 JSON、改 TOML、调环境变量——为什么不能统一管理？
+
+于是这个项目诞生了。它不是要替代任何工具，而是做那个"让一切变得简单"的中间层。
+
+一路走来，感谢每一份 Issue 的鞭策、每一行 PR 的贡献，以及每一位赞助商的信任。如果你觉得 CC Switch 为你省下了时间，不妨点个 Star，或把它分享给身边同样在 AI 编程路上探索的朋友。
+
+工具的价值不在代码本身，而在它帮人省下的那些时间——用来写更好的代码，陪更重要的人，或者只是好好睡一觉。
+
+Happy Coding. May the AI be with you.

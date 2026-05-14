@@ -208,7 +208,7 @@ CC Switch 使用“通用配置片段”功能，在不同的供应商之间传�
 <details>
 <summary><strong>macOS 安装</strong></summary>
 
-CC Switch macOS 版本已通过 Apple 代码签名和公证，可直接下载安装，无需额外操作。推荐使用 `.dmg` 安装包。
+CC Switch macOS 版本可直接下载安装，推荐使用 `.dmg` 安装包。
 
 </details>
 
@@ -294,7 +294,7 @@ brew upgrade --cask cc-switch
 
 从 [Releases](../../releases) 页面下载 `CC-Switch-v{版本号}-macOS.dmg`（推荐）或 `.zip`。
 
-> **注意**：CC Switch macOS 版本已通过 Apple 代码签名和公证，可直接安装打开。
+> **注意**：CC Switch macOS 版本可直接下载安装。
 
 ### Arch Linux 用户
 
