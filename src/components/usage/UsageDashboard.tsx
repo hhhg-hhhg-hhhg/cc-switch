@@ -168,6 +168,7 @@ export function UsageDashboard() {
           </Popover>
         </div>
       </div>
+      </div>
 
       <UsageSummaryCards
         range={range}
@@ -261,6 +262,7 @@ export function UsageDashboard() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      </div>
     </motion.div>
   );
 }
